@@ -2,13 +2,22 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Document</title>
+  <script>
+    window.CONFIG = {
+      STRIPE_PUBLISHABLE_KEY: "{{STRIPE_PUBLISHABLE_KEY}}"
+    };
+  </script>
+  <script src="/public/index.js" type="module"></script>
 </head>
 
 <body>
-
+  <h1>Stripe Payment</h1>
+  <p>This is my product: 800$</p>
+  <button class="pay_button" type="button">Pay</button>
+  <div id="checkout"></div>
 </body>
 
 </html>
