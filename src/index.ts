@@ -26,12 +26,12 @@ fastify.register(fastifyViews, {
   },
 });
 
-fastify.get("/", async (_request, reply) => {
-  return reply.view("./public/index.html", { STRIPE_PUBLISHABLE_KEY });
-});
+fastify.get("/:page", async (request, reply) => {
+  const page = (request.params as { page?: string }).page || "index";
 
-fastify.get("/success", async (_request, reply) => {
-  return reply.view("./public/success.html");
+  return reply.view(`./public/${page}.html`, {
+    STRIPE_PUBLISHABLE_KEY,
+  });
 });
 
 fastify.get("/public/index.js", async (_request, reply) => {
@@ -46,6 +46,8 @@ fastify.post("/api/checkout", async (request, reply) => {
       itemId: string;
       itemCount: number;
     };
+
+    // check the prices in DB
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -72,6 +74,29 @@ fastify.post("/api/checkout", async (request, reply) => {
     return reply.status(500).send({ error: "Internal Server Error" });
   }
 });
+
+fastify.post("/api/payment_intent", async (request, reply) => {
+  const { itemId, itemCount } = request.body as {
+    itemId: string;
+    itemCount: string;
+  };
+
+  // check the prices in DB
+
+  const amount = Number(itemId) * Number(itemCount);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount,
+    currency: "eur",
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  return reply.send({ clientSecret: paymentIntent.client_secret });
+});
+
+// TODO: add a webhook to handle the session status
 
 fastify.get("/api/session_status", async (request, reply) => {
   const session = await stripe.checkout.sessions.retrieve(
